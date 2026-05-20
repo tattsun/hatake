@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# プライベートな npm レジストリ設定（公開しない）
+.npmrc
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
