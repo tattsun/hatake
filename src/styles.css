@@ -577,6 +577,48 @@ input.field:focus {
   border-color: var(--accent);
 }
 
+/* incremental search */
+.search-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 8px;
+  height: 30px;
+  width: 200px;
+  color: var(--text-faint);
+}
+.search-box:focus-within {
+  border-color: var(--accent);
+}
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+  padding: 0;
+}
+.search-box input::placeholder {
+  color: var(--text-faint);
+}
+.search-clear {
+  display: inline-flex;
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+}
+.search-clear:hover {
+  color: var(--text);
+}
+
 /* tabs */
 .tabs {
   display: flex;

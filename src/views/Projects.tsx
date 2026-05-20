@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Box, ChevronDown, ChevronRight, ChevronUp, Layers, Network, RefreshCw } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../lib/useFetch";
-import { Empty, Spinner, StatusDot } from "../components/ui";
+import { Empty, SearchInput, Spinner, StatusDot } from "../components/ui";
 import { useI18n } from "../i18n";
 import { STANDALONE } from "../lib/compose";
 import type { ContainerInfo } from "../types";
@@ -22,6 +22,7 @@ export function Projects({ onOpenProject }: { onOpenProject: (key: string) => vo
   const { data, loading, reload } = useFetch(() => api.listContainers(), [], 5000);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [query, setQuery] = useState("");
 
   const projName = (key: string) =>
     key === STANDALONE ? t("containers.standalone") : key;
@@ -43,7 +44,11 @@ export function Projects({ onOpenProject }: { onOpenProject: (key: string) => vo
 
   const sorted = useMemo(() => {
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...projects].sort((a, b) => {
+    const q = query.trim().toLowerCase();
+    const matched = q
+      ? projects.filter((p) => projName(p.key).toLowerCase().includes(q))
+      : projects;
+    return [...matched].sort((a, b) => {
       let cmp = 0;
       if (sortKey === "name") cmp = projName(a.key).localeCompare(projName(b.key));
       else if (sortKey === "containers") cmp = a.total - b.total;
@@ -53,7 +58,7 @@ export function Projects({ onOpenProject }: { onOpenProject: (key: string) => vo
       return cmp * dir;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects, sortKey, sortDir]);
+  }, [projects, sortKey, sortDir, query]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -80,6 +85,7 @@ export function Projects({ onOpenProject }: { onOpenProject: (key: string) => vo
         <Network size={15} />
         <h2>{t("projects.title")}</h2>
         <span className="spacer" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t("common.search")} />
         <button className="btn sm" onClick={() => reload()}>
           <RefreshCw size={13} className={loading ? "spin" : ""} /> {t("common.refresh")}
         </button>

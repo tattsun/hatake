@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Layers, RefreshCw, Trash2 } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../lib/useFetch";
-import { Empty, Spinner, useToast } from "../components/ui";
+import { Empty, SearchInput, Spinner, useToast } from "../components/ui";
 import { useI18n } from "../i18n";
 import { formatBytes, relativeTime, shortId } from "../lib/format";
 
@@ -11,6 +11,17 @@ export function Images() {
   const { data, error, loading, reload } = useFetch(() => api.listImages(), []);
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return data ?? [];
+    return (data ?? []).filter(
+      (img) =>
+        img.tags.some((tag) => tag.toLowerCase().includes(q)) ||
+        shortId(img.id).includes(q),
+    );
+  }, [data, query]);
 
   async function remove(id: string) {
     setBusy(id);
@@ -31,6 +42,7 @@ export function Images() {
         <Layers size={15} />
         <h2>{t("images.title")}</h2>
         <span className="spacer" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t("common.search")} />
         <button className="btn sm" onClick={() => reload()}>
           <RefreshCw size={13} className={loading ? "spin" : ""} /> {t("common.refresh")}
         </button>
@@ -44,7 +56,7 @@ export function Images() {
 
       {!data && loading ? (
         <Empty icon={<Spinner />} text={t("common.loading")} />
-      ) : data && data.length === 0 ? (
+      ) : shown.length === 0 ? (
         <Empty icon={<Layers size={28} />} text={t("images.empty")} />
       ) : (
         <table className="fixed">
@@ -65,7 +77,7 @@ export function Images() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((img) => (
+            {shown.map((img) => (
               <tr key={img.id}>
                 <td className="wrap">
                   {img.tags.length ? (

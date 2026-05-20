@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { api } from "../api";
 import { useFetch } from "../lib/useFetch";
-import { Empty, Pill, Spinner, useToast } from "../components/ui";
+import { Empty, Pill, SearchInput, Spinner, useToast } from "../components/ui";
 import { useI18n } from "../i18n";
 import type { TKey } from "../i18n";
 import { STANDALONE } from "../lib/compose";
@@ -31,6 +31,7 @@ export function Containers({ initialProject }: { initialProject?: string }) {
   const [selContainerId, setSelContainerId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [projectFilter, setProjectFilter] = useState<string>(initialProject ?? "all");
+  const [query, setQuery] = useState("");
 
   const projName = (key: string) =>
     key === STANDALONE ? t("containers.standalone") : key;
@@ -53,16 +54,20 @@ export function Containers({ initialProject }: { initialProject?: string }) {
     return { list: [...set].sort(), hasStandalone };
   }, [data]);
 
-  const filtered = useMemo(
-    () =>
-      (data ?? []).filter((c) => {
-        if (filter !== "all" && c.state !== filter) return false;
-        if (projectFilter === "all") return true;
-        if (projectFilter === STANDALONE) return !c.composeProject;
-        return c.composeProject === projectFilter;
-      }),
-    [data, filter, projectFilter],
-  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return (data ?? []).filter((c) => {
+      if (filter !== "all" && c.state !== filter) return false;
+      if (projectFilter === STANDALONE && c.composeProject) return false;
+      if (projectFilter !== "all" && projectFilter !== STANDALONE && c.composeProject !== projectFilter)
+        return false;
+      if (q) {
+        const hay = `${c.name} ${c.composeService ?? ""} ${c.composeProject ?? ""} ${c.image}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [data, filter, projectFilter, query]);
 
   // compose プロジェクトでグルーピング（プロジェクト無しは standalone）
   const groups = useMemo(() => {
@@ -138,6 +143,7 @@ export function Containers({ initialProject }: { initialProject?: string }) {
           ))}
         </div>
         <span className="spacer" />
+        <SearchInput value={query} onChange={setQuery} placeholder={t("common.search")} />
         <select
           value={projectFilter}
           onChange={(e) => setProjectFilter(e.target.value)}

@@ -33,6 +33,7 @@ export const en = {
   "common.actions": "Actions",
   "common.size": "Size",
   "common.count": "{n} items",
+  "common.search": "Search",
 
   "status.running": "Running",
   "status.stopped": "Stopped",

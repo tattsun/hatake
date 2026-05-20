@@ -1,6 +1,34 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
+
+export function SearchInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="search-box">
+      <Search size={13} />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        spellCheck={false}
+        autoCorrect="off"
+      />
+      {value && (
+        <button className="search-clear" onClick={() => onChange("")} tabIndex={-1}>
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function StatusDot({ on, warn }: { on?: boolean; warn?: boolean }) {
   const cls = warn ? "warn" : on ? "on" : "off";

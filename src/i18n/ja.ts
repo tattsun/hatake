@@ -35,6 +35,7 @@ export const ja: Record<keyof typeof en, string> = {
   "common.actions": "操作",
   "common.size": "サイズ",
   "common.count": "{n} 件",
+  "common.search": "検索",
 
   "status.running": "Running",
   "status.stopped": "Stopped",
