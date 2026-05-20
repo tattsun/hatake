@@ -1,0 +1,45 @@
+name: Release
+
+# v1.2.3 のようなタグを push すると、macOS 版をビルドして GitHub Release を作成する。
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # mise.toml に固定した node / rust を導入
+      - uses: jdx/mise-action@v2
+
+      - name: Add macOS build targets
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Install dependencies
+        run: npm ci
+
+      # フロントのビルド〜tauri build〜Release 作成までを一括実行
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Hatake ${{ github.ref_name }}"
+          releaseBody: |
+            ## Hatake ${{ github.ref_name }}
+
+            macOS 向けビルド（universal: Apple Silicon + Intel）。
+            `.dmg` をダウンロードしてインストールしてください。
+
+            > Beta。コード署名はしていないため、初回起動時は Gatekeeper の警告が出ます
+            > （右クリック → 開く、または「システム設定 → プライバシーとセキュリティ」から許可）。
+          releaseDraft: false
+          prerelease: true
+          args: --target universal-apple-darwin
