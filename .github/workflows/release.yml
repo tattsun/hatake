@@ -71,7 +71,9 @@ jobs:
 
             > Beta — under active development; expect changes and bugs.
           releaseDraft: false
-          prerelease: true
+          # Not a prerelease, so /releases/latest resolves for the README download link.
+          # The "Beta" status is conveyed in the release notes and README instead.
+          prerelease: false
           args: --target universal-apple-darwin
 
       # Add a version-independent dmg so the README can always link to
