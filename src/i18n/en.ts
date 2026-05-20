@@ -118,6 +118,11 @@ export const en = {
 
   "settingsJson.title": "RD settings (rdctl list-settings)",
 
+  "demo.title": "Demo mode",
+  "demo.desc": "Replace all data with dummy data for demo recording.",
+  "demo.on": "On",
+  "demo.off": "Off",
+
   "projects.title": "Projects",
   "projects.empty": "No Compose projects or containers",
   "projects.servicesN": "{n} services",

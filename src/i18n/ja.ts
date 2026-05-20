@@ -120,6 +120,11 @@ export const ja: Record<keyof typeof en, string> = {
 
   "settingsJson.title": "RD 設定 (rdctl list-settings)",
 
+  "demo.title": "デモモード",
+  "demo.desc": "全データを録画用のダミーに置き換えます。",
+  "demo.on": "ON",
+  "demo.off": "OFF",
+
   "projects.title": "プロジェクト",
   "projects.empty": "Compose プロジェクト・コンテナがありません",
   "projects.servicesN": "{n} サービス",

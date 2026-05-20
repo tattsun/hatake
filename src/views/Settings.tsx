@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Camera,
   Globe,
+  Clapperboard,
   Play,
   Plus,
   Power,
@@ -14,6 +15,7 @@ import { useFetch } from "../lib/useFetch";
 import { Empty, Modal, Spinner, StatusDot, useToast } from "../components/ui";
 import { useI18n, LANGS } from "../i18n";
 import type { TKey } from "../i18n";
+import { useDemo, setDemo } from "../lib/demo";
 import { relativeTime } from "../lib/format";
 import type { RdStatus } from "../types";
 
@@ -44,6 +46,7 @@ export function Settings({
   return (
     <>
       <LanguagePanel />
+      <DemoPanel />
 
       <div className="panel" style={{ marginBottom: 18 }}>
         <div className="panel-head">
@@ -106,6 +109,29 @@ export function Settings({
       <Snapshots />
       <SettingsJson />
     </>
+  );
+}
+
+function DemoPanel() {
+  const { t } = useI18n();
+  const demo = useDemo();
+  return (
+    <div className="panel" style={{ marginBottom: 18 }}>
+      <div className="panel-head">
+        <Clapperboard size={15} />
+        <h2>{t("demo.title")}</h2>
+        <span className="spacer" />
+        <button
+          className={`btn sm ${demo ? "primary" : ""}`}
+          onClick={() => setDemo(!demo)}
+        >
+          {demo ? t("demo.on") : t("demo.off")}
+        </button>
+      </div>
+      <div style={{ padding: 16, fontSize: 12.5, color: "var(--text-dim)" }}>
+        {t("demo.desc")}
+      </div>
+    </div>
   );
 }
 

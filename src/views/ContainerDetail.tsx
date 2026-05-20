@@ -15,6 +15,8 @@ import { useFetch } from "../lib/useFetch";
 import { Empty, Pill, Spinner } from "../components/ui";
 import { useI18n } from "../i18n";
 import type { TKey } from "../i18n";
+import { isDemo } from "../lib/demo";
+import { mockLogLine } from "../lib/mock";
 import { relativeTime, shortId, stateClass } from "../lib/format";
 import type { ContainerInfo } from "../types";
 
@@ -46,14 +48,22 @@ export function ContainerDetail({
   useEffect(() => {
     if (!following) return;
     setLiveLogs("");
-    const channel = new Channel<string>();
-    channel.onmessage = (msg) => {
+    const append = (msg: string) =>
       setLiveLogs((prev) => {
         const next = prev + msg;
         // メモリ肥大を防ぐため末尾 200KB に制限
         return next.length > 200_000 ? next.slice(next.length - 200_000) : next;
       });
-    };
+
+    // デモモードはダミーログを定期生成する
+    if (isDemo()) {
+      append(mockLogLine());
+      const timer = setInterval(() => append(mockLogLine()), 900);
+      return () => clearInterval(timer);
+    }
+
+    const channel = new Channel<string>();
+    channel.onmessage = append;
     const sid = streamId.current;
     api.startLogStream(sid, c.id, channel);
     return () => {

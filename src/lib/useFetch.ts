@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { subscribeDemo } from "./demo";
 
 /** 非同期データ取得 + 任意のポーリング。reload で手動再取得できる。 */
 export function useFetch<T>(
@@ -33,6 +34,9 @@ export function useFetch<T>(
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+
+  // デモモードの切替時に全フェッチを再取得してデータソースを差し替える
+  useEffect(() => subscribeDemo(() => reload(true)), [reload]);
 
   return { data, error, loading, reload };
 }
