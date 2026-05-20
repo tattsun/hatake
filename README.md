@@ -6,6 +6,12 @@ A modern UI for Rancher Desktop on macOS. Tauri v2 (Rust) + React + TypeScript.
 
 Manage containers, images, Kubernetes resources, and Rancher Desktop itself from one window, with a menu bar tray for quick access.
 
+## Download
+
+**[⬇ Download for macOS (latest)](https://github.com/tattsun/hatake/releases/latest/download/Hatake_universal.dmg)** — universal build (Apple Silicon + Intel).
+
+See [all releases](https://github.com/tattsun/hatake/releases) for previous versions.
+
 ## Demo
 
 https://github.com/user-attachments/assets/687854b8-1854-43e6-9add-0e61dcf4ce7f

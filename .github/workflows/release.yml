@@ -1,6 +1,6 @@
 name: Release
 
-# v1.2.3 のようなタグを push すると、macOS 版をビルドして GitHub Release を作成する。
+# Pushing a tag like v1.2.3 builds the macOS app and publishes a GitHub Release.
 on:
   push:
     tags:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # mise.toml に固定した node / rust を導入
+      # Install node / rust pinned in mise.toml
       - uses: jdx/mise-action@v2
 
       - name: Add macOS build targets
@@ -25,7 +25,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # App Store Connect API キー(.p8)を base64 シークレットからファイルへ復元
+      # Apply the tag version (v0.1.1 -> 0.1.1) to the manifests.
+      # Required because the dmg name and CFBundleVersion come from tauri.conf.json.
+      - name: Sync version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Setting version to $VERSION"
+          tmp=$(mktemp)
+          jq --arg v "$VERSION" '.version = $v' src-tauri/tauri.conf.json > "$tmp"
+          mv "$tmp" src-tauri/tauri.conf.json
+          npm pkg set version="$VERSION"
+
+      # Restore the App Store Connect API key (.p8) from a base64 secret to a file
       - name: Prepare notarization API key
         env:
           APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
@@ -34,16 +46,16 @@ jobs:
           echo "$APPLE_API_KEY_BASE64" | base64 --decode > "$KEY_PATH"
           echo "APPLE_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
 
-      # フロントのビルド〜tauri build〜Release 作成までを一括実行
-      # 署名用シークレットが未設定なら自動的に未署名ビルドになる
+      # Build the frontend, run tauri build, and create the Release
+      # (falls back to an unsigned build if the signing secrets are unset)
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # 署名 (Developer ID Application)
+          # Signing (Developer ID Application)
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # 公証 (App Store Connect API key)
+          # Notarization (App Store Connect API key)
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
@@ -53,11 +65,22 @@ jobs:
           releaseBody: |
             ## Hatake ${{ github.ref_name }}
 
-            macOS 向けビルド（universal: Apple Silicon + Intel）。
-            `.dmg` をダウンロードしてインストールしてください。
+            macOS universal build (Apple Silicon + Intel), signed and notarized by Apple.
 
-            > Beta。コード署名はしていないため、初回起動時は Gatekeeper の警告が出ます
-            > （右クリック → 開く、または「システム設定 → プライバシーとセキュリティ」から許可）。
+            Download the `.dmg` and drag **Hatake** into your Applications folder.
+
+            > Beta — under active development; expect changes and bugs.
           releaseDraft: false
           prerelease: true
           args: --target universal-apple-darwin
+
+      # Add a version-independent dmg so the README can always link to
+      # releases/latest/download/Hatake_universal.dmg
+      - name: Upload stable-named dmg
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dmg=$(ls src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg | head -1)
+          cp "$dmg" Hatake_universal.dmg
+          gh release upload "$GITHUB_REF_NAME" Hatake_universal.dmg --clobber
